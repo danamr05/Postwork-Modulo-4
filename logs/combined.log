@@ -1,0 +1,4 @@
+{"level":"info","message":"esta es una prueba con \"info\"","service":"user-service"}
+{"level":"error","message":"esta es una prueba con \"error\"","service":"user-service"}
+2023-01-11 | info | esta es una prueba con "info"
+2023-01-11 | error | esta es una prueba con "error"
