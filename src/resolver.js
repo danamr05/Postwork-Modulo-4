@@ -1,9 +1,10 @@
 export const resolvers = { 
     Query: {
-    saludo: () => 'Hola Bedu!',
-    getLive: ({id}) => lives.find(e => e.id == id),
-    getAllLives: () => lives,
-},
+        getAllLives: () => lives,
+        getLive: (_, { id }) => {
+            return lives.find(e => e.id == id)
+        },
+    },
 }
 
 const live = [
@@ -14,5 +15,3 @@ const live = [
     {id: 5, imagen: "https://assets.bedu.org/images/SI_ISO_Nov25_Evenbrite.png", titulo: "ISO 27032 en Ciberseguridad: ¿Por que debe tenerlo tu empresa?", fecha: "2021-11-26"},
     {id: 6, imagen: "https://assets.bedu.org/images/Live_youtube.png", titulo: "Negociacion en temas de conflictos", fecha: "2021-11-25"}
 ]
-
-module.exports = { resolvers }
