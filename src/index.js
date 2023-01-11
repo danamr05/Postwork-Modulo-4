@@ -23,21 +23,4 @@ app.use('/graphql', graphqlHTTP({
 }))
 app.listen(4000)
 
-//sesion 4
-const typeDefs= gql`
-#Definicion de schema
-type Query {
-    helloWorld: String
-}
-`
-const resolvers = {
-    Query: {
-        helloWorld: () => 'Hola Mundo!'
-    }
-}
-const server = ApolloServer ({typeDefs, resolvers})
-server.listen().then(({ url }) => {
-    console.log(`Servidor corriendo en ${url}`);
-} )
-
 console.log(process.env.MY_OWN_KEY)

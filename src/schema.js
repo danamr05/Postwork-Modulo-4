@@ -1,7 +1,7 @@
-import { gql } from 'apollo-server'
-export const typeDefs = gql`
+const { buildSchema } = require('graphql')
 
-type Query{
+const schema = buildSchema(`
+    type Query{
         saludo: String,
         getLive(id:ID!): Live,
         getAllLives: [Live],
@@ -10,8 +10,8 @@ type Query{
         id: ID, 
         imagen: String,
         titulo: String,
-        fecha: String
+        fecha: String,
     }
+`)
 
-`
-
+module.exports = { schema }
