@@ -1,6 +1,11 @@
-import { gql } from 'apollo-server'
+"use strict";
 
-export const typeDefs = gql`
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.typeDefs = void 0;
+var _apolloServer = require("apollo-server");
+const typeDefs = (0, _apolloServer.gql)`
   type Query {
     getAllLives: [Live],
     getLive(id:ID!): Live
@@ -16,5 +21,5 @@ export const typeDefs = gql`
         fecha: String
     }
 
-`
-
+`;
+exports.typeDefs = typeDefs;
