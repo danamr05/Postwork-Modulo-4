@@ -1,43 +1,34 @@
-//const { logger } = require('./logger')
 
-//logger.info('esta es una prueba con "info"')
-//logger.error('esta es una prueba con "error"')
-const express = require('express')
-const { graphqlHTTP } = require ('express-graphql')
-const { resolver } = require ('./resolver')
-const { schema } = require ('./schema')
-const { ApolloServer, gql } = require('apollo-server')
+import 'dotenv/config'
+import { logger } from "./logger";
+import { ApolloServer } from 'apollo-server'
+import { resolvers } from './resolver'
+import { typeDefs } from './schema'
+import { sequelize } from './db'
 
-//sesion 3 
-require('dotenv').config()
-import { logger } from './logger'
+const server = new ApolloServer({ typeDefs, resolvers })
 
-logger.info('postwork')
+server.listen().then(({ url }) => {
+  logger.info(`🚀  Servidor listo en ${url}, inicializado en ${process.env.NODE_ENV} a las ${new Date().toISOString()}`)
+})
 
-//sesion 2
-const app= express ()
-app.use('/graphql', graphqlHTTP({
-    schema : schema,
-    rootValue: resolver,
-    graphql: true,
-}))
-app.listen(4000)
+const connection = async () => {
+    try {
+        await sequelize.authenticate()
+        logger.info('Conexion establecida!')
+        console.log(sequelize.models.Live);
+        console.log(await sequelize.models.Live.findAll());
+        const live = await sequelize.models.Live.create({
+            id: "1",
+            imagen: 'https://assets.bedu.org/images/Panel_26_ENE.png',
+            titulo: 'Transformacion Digital: ¿En que etapa va tu empresa?',
+            fecha: '2022-01-27',
+        }, {field: [ID]});
+        console.log(live);
 
-//sesion 4
-const typeDefs= gql`
-#Definicion de schema
-type Query {
-    helloWorld: String
-}
-`
-const resolvers = {
-    Query: {
-        helloWorld: () => 'Hola Mundo!'
+    } catch (error) {
+        logger.error('Error al conectarse a la DB', error)
     }
 }
-const server = ApolloServer ({typeDefs, resolvers})
-server.listen().then(({ url }) => {
-    console.log(`Servidor corriendo en ${url}`);
-} )
 
-console.log(process.env.MY_OWN_KEY)
+//connection()
