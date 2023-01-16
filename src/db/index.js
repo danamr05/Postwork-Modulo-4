@@ -1,6 +1,7 @@
 import { Sequelize, DataTypes } from 'sequelize'
 import { logger } from '../logger'
 import Live from './model/Live'
+import User from './model/User'
 
 export const sequelize = new Sequelize({
   dialect: 'sqlite',
@@ -9,6 +10,7 @@ export const sequelize = new Sequelize({
 })
 
 Live(sequelize, DataTypes)
+User(sequelize, DataTypes)
 
 if (process.env.NODE_ENV !== 'productivo'){
   const syncDB = async () => await sequelize.sync()

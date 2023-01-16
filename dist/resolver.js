@@ -4,61 +4,123 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 exports.resolvers = void 0;
+var _apolloServerErrors = require("apollo-server-errors");
+var _bcrypt = require("bcrypt");
+var _jsonwebtoken = require("jsonwebtoken");
+var _auth = require("./auth");
 var _db = require("./db");
 var _logger = require("./logger");
-var _apolloServerErrors = require("apollo-server-errors");
+const SALT_ROUNDS = 10;
 const resolvers = {
   Query: {
-    getAllLives: async () => await _db.sequelize.models.Live.findAll(),
+    getAllLives: async (_, __, {
+      token
+    }) => (0, _auth.verifyToken)(token) && (await _db.sequelize.models.Live.findAll()),
     getLive: async (_, {
       id
+    }, {
+      token
     }) => {
+      (0, _auth.verifyToken)(token);
       return await _db.sequelize.models.Live.findOne({
         where: {
           id
-        } // asin: asin
+        }
       });
     }
   },
-
   Mutation: {
     insertLive: async (_, {
       id,
-      imagen,
-      titulo,
-      fecha
+      title,
+      subtitle,
+      date,
+      time,
+      mode,
+      img
+    }, {
+      token
     }) => {
-      return await _db.sequelize.models.Live.create({
+      return (0, _auth.verifyToken)(token) && (await _db.sequelize.models.Live.create({
         id,
-        imagen,
-        titulo,
-        fecha
-      });
+        title,
+        subtitle,
+        date,
+        time,
+        mode,
+        img
+      }));
     },
     updateLive: async (_, {
       id,
-      imagen,
-      titulo,
-      fecha
+      title,
+      subtitle,
+      date,
+      time,
+      mode,
+      img
+    }, {
+      token
     }) => {
-      // buscamos el libro con base al asin proporcionado
-      let liveFound = await _db.sequelize.models.Live.findOne({
+      (0, _auth.verifyToken)(token);
+      const live = await _db.sequelize.models.Live.findOne({
         where: {
           id
-        } // asin: asin
+        }
       });
-      // Sino lo encontramos lanzamos un error
-      if (!liveFound) {
-        _logger.logger.error(`Live not found with asin: ${id}`);
+      if (live) {
+        await _db.sequelize.models.Live.update({
+          title,
+          subtitle,
+          date,
+          time,
+          mode,
+          img
+        }, {
+          where: {
+            id
+          }
+        });
+        return await _db.sequelize.models.Live.findOne({
+          where: {
+            id
+          }
+        });
+      } else {
         throw new _apolloServerErrors.ApolloError('Live not found', 'ERR003');
       }
-      // En caso de encontrarlo actualizamos las propiedades que no vengan nulas
-      imagen && (liveFound.imagen = imagen);
-      titulo && (liveFound.titulo = titulo);
-      fecha && (liveFound.fecha = fecha);
-      // Actualizamos el libro
-      liveFound.save();
-      return liveFound;
+    },
+    signUp: async (_, {
+      input: user
+    }) => {
+      user.password = await (0, _bcrypt.hash)(user.password, SALT_ROUNDS);
+      return await _db.sequelize.models.User.create({
+        ...user
+      });
+    },
+    signIn: async (_, {
+      email,
+      password
+    }) => {
+      const user = await _db.sequelize.models.User.findOne({
+        where: {
+          email
+        }
+      });
+      if (user && (await (0, _bcrypt.compare)(password, user.password))) {
+        const tokenData = {
+          fullName: user.name + ' ' + user.lastname,
+          email,
+          isAdmin: user.isAdmin
+        };
+        _logger.logger.info(`[signIn] El usuario ${user.id} a accedido al sistema`);
+        return (0, _jsonwebtoken.sign)(tokenData, process.env.JWT_SECRET, {
+          expiresIn: 180
+        });
+      } else {
+        _logger.logger.error(`[signIn] Credenciales inválidas para ${email}`);
+        throw new _apolloServerErrors.AuthenticationError('Invalid credentials');
+      }
     }
   }
 };
